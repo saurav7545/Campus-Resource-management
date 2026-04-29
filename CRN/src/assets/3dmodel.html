@@ -1,0 +1,863 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>College Campus Navigator</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #0b0f1a; --panel: #0e1422; --panel2: #111928;
+  --b1: #1c2640; --b2: #243050;
+  --accent: #3b82f6; --green: #22c55e; --orange: #f97316; --red: #ef4444;
+  --t1: #e2e8f0; --t2: #94a3b8; --t3: #475569;
+}
+body { background: var(--bg); color: var(--t1); font-family: 'Segoe UI', sans-serif; height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
+
+header { background: var(--panel); border-bottom: 1px solid var(--b1); padding: 0 20px; height: 52px; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; position: relative; }
+header::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, var(--accent), transparent); opacity: .6; }
+.brand { display: flex; align-items: center; gap: 11px; }
+.bicon { width: 34px; height: 34px; background: linear-gradient(135deg, #3b82f6, #1d4ed8); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+.bname { font-size: 15px; font-weight: 700; letter-spacing: 1px; }
+.bsub { font-size: 10px; color: var(--t3); }
+.badges { display: flex; gap: 6px; }
+.badge { background: rgba(59,130,246,.1); border: 1px solid rgba(59,130,246,.25); color: var(--accent); font-size: 10px; padding: 3px 10px; border-radius: 20px; }
+.badge.g { background: rgba(34,197,94,.1); border-color: rgba(34,197,94,.25); color: var(--green); }
+
+.layout { display: flex; flex: 1; overflow: hidden; }
+
+/* LEFT SIDEBAR */
+.sl { width: 220px; min-width: 220px; background: var(--panel); border-right: 1px solid var(--b1); display: flex; flex-direction: column; overflow: hidden; }
+.shdr { padding: 9px 14px; font-size: 9px; color: var(--t3); letter-spacing: 2px; text-transform: uppercase; border-bottom: 1px solid var(--b1); display: flex; align-items: center; gap: 7px; font-weight: 600; }
+.shdr .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 6px var(--accent); }
+.rscroll { flex: 1; overflow-y: auto; padding: 8px; }
+.rscroll::-webkit-scrollbar { width: 3px; }
+.rscroll::-webkit-scrollbar-thumb { background: var(--b2); }
+.fg { margin-bottom: 8px; }
+.fglbl { font-size: 9px; color: var(--t3); letter-spacing: 1px; padding: 4px 6px; font-weight: 600; }
+.ri { display: flex; align-items: center; gap: 7px; padding: 6px 8px; border-radius: 6px; cursor: pointer; transition: all .15s; border: 1px solid transparent; margin-bottom: 2px; font-size: 12px; font-weight: 600; }
+.ri:hover { background: rgba(59,130,246,.07); border-color: rgba(59,130,246,.15); }
+.ri.sel { background: rgba(59,130,246,.12); border-color: rgba(59,130,246,.3); }
+.ri.pf { background: rgba(34,197,94,.1); border-color: rgba(34,197,94,.3); }
+.ri.pt { background: rgba(249,115,22,.1); border-color: rgba(249,115,22,.3); }
+.ri-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.ri-name { flex: 1; }
+.ri-code { font-size: 8px; color: var(--t3); background: var(--b1); padding: 1px 5px; border-radius: 3px; }
+
+/* CENTER */
+.cw { flex: 1; position: relative; overflow: hidden; background: #070b14; }
+canvas { display: block; width: 100%; height: 100%; }
+
+.floor-bar { position: absolute; bottom: 14px; left: 50%; transform: translateX(-50%); display: flex; gap: 5px; background: rgba(14,20,34,.95); border: 1px solid var(--b2); border-radius: 10px; padding: 5px; }
+.flb { background: var(--panel2); border: 1px solid var(--b1); color: var(--t3); font-size: 10px; font-weight: 700; padding: 5px 14px; border-radius: 7px; cursor: pointer; transition: all .2s; letter-spacing: 1px; }
+.flb:hover { background: rgba(59,130,246,.1); color: var(--accent); border-color: rgba(59,130,246,.3); }
+.flb.active { background: rgba(59,130,246,.15); color: var(--accent); border-color: var(--accent); }
+
+.info-box { position: absolute; top: 12px; left: 12px; background: rgba(14,20,34,.88); border: 1px solid var(--b2); border-radius: 8px; padding: 9px 13px; font-size: 10px; color: var(--t3); line-height: 1.9; }
+.info-box b { color: var(--t2); }
+
+.tooltip { position: absolute; background: rgba(14,20,34,.95); border: 1px solid var(--b2); border-radius: 7px; padding: 7px 11px; pointer-events: none; display: none; z-index: 20; }
+.tooltip.show { display: block; }
+.tt-name { font-size: 13px; font-weight: 700; color: var(--t1); }
+.tt-sub { font-size: 10px; color: var(--t3); margin-top: 2px; }
+
+.toast { position: absolute; top: 12px; left: 50%; transform: translateX(-50%) translateY(-60px); background: linear-gradient(135deg, #3b82f6, #1d4ed8); color: #fff; font-size: 11px; font-weight: 700; padding: 7px 18px; border-radius: 20px; transition: transform .4s cubic-bezier(.34,1.56,.64,1); white-space: nowrap; z-index: 30; pointer-events: none; letter-spacing: .5px; }
+.toast.show { transform: translateX(-50%) translateY(0); }
+
+/* RIGHT SIDEBAR */
+.sr { width: 215px; min-width: 215px; background: var(--panel); border-left: 1px solid var(--b1); display: flex; flex-direction: column; overflow: hidden; }
+.nsec { padding: 10px 12px; border-bottom: 1px solid var(--b1); }
+.nlbl { font-size: 9px; color: var(--t3); font-weight: 600; margin-bottom: 4px; display: flex; align-items: center; gap: 5px; margin-top: 7px; letter-spacing: 1px; text-transform: uppercase; }
+.nlbl:first-child { margin-top: 0; }
+.ndot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+
+.acw { position: relative; }
+.aci { width: 100%; background: var(--panel2); border: 1px solid var(--b2); color: var(--t1); font-family: inherit; font-size: 13px; font-weight: 500; padding: 8px 28px 8px 10px; border-radius: 6px; outline: none; transition: border-color .2s; }
+.aci:focus { border-color: var(--accent); background: #131e33; }
+.aci::placeholder { color: var(--t3); font-size: 11px; }
+.aci.hasval { border-color: rgba(59,130,246,.5); background: #0f1c30; }
+.acx { position: absolute; right: 7px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--t3); cursor: pointer; font-size: 13px; padding: 2px 4px; display: none; }
+.acx:hover { color: var(--red); }
+.acdrop { position: absolute; top: calc(100% + 3px); left: 0; right: 0; background: #111928; border: 1px solid var(--b2); border-radius: 8px; max-height: 190px; overflow-y: auto; z-index: 200; display: none; box-shadow: 0 8px 28px rgba(0,0,0,.7); }
+.acdrop.open { display: block; }
+.acdrop::-webkit-scrollbar { width: 3px; }
+.acdrop::-webkit-scrollbar-thumb { background: var(--b2); }
+.acopt { display: flex; align-items: center; gap: 8px; padding: 8px 10px; cursor: pointer; border-bottom: 1px solid var(--b1); font-size: 12px; font-weight: 600; transition: background .1s; }
+.acopt:last-child { border-bottom: none; }
+.acopt:hover, .acopt.foc { background: rgba(59,130,246,.13); }
+.acopt-hl { color: var(--accent); }
+.acopt-fl { font-size: 8px; color: var(--t3); background: var(--b1); padding: 1px 5px; border-radius: 3px; flex-shrink: 0; margin-left: auto; }
+.acnone { padding: 12px; font-size: 11px; color: var(--t3); text-align: center; }
+
+.fbtn { width: 100%; background: linear-gradient(135deg, #3b82f6, #1d4ed8); color: #fff; border: none; font-family: inherit; font-size: 12px; font-weight: 700; letter-spacing: 1px; padding: 9px; border-radius: 6px; cursor: pointer; margin-top: 8px; transition: opacity .2s, transform .1s; }
+.fbtn:hover { opacity: .9; transform: translateY(-1px); }
+.cbtn { width: 100%; background: transparent; border: 1px solid var(--b2); color: var(--t3); font-family: inherit; font-size: 12px; font-weight: 600; padding: 7px; border-radius: 6px; cursor: pointer; margin-top: 4px; transition: all .2s; }
+.cbtn:hover { border-color: var(--red); color: var(--red); }
+
+.rsec { flex: 1; overflow-y: auto; padding: 10px 12px; }
+.rsec::-webkit-scrollbar { width: 3px; }
+.rsec::-webkit-scrollbar-thumb { background: var(--b2); }
+.rttl { font-size: 9px; color: var(--t3); letter-spacing: 2px; font-weight: 600; text-transform: uppercase; margin-bottom: 10px; }
+.rstep { display: flex; align-items: flex-start; gap: 8px; padding: 5px 0; position: relative; }
+.rstep:not(:last-child)::after { content: ''; position: absolute; left: 8px; top: 24px; width: 1px; height: calc(100% - 6px); background: var(--b2); }
+.sdot { width: 17px; height: 17px; border-radius: 50%; background: var(--b2); border: 2px solid var(--b1); display: flex; align-items: center; justify-content: center; font-size: 7px; flex-shrink: 0; position: relative; z-index: 1; }
+.sdot.s { background: rgba(34,197,94,.2); border-color: var(--green); color: var(--green); }
+.sdot.e { background: rgba(249,115,22,.2); border-color: var(--orange); color: var(--orange); }
+.sdot.m { background: rgba(59,130,246,.15); border-color: var(--accent); color: var(--accent); }
+.sdot.c { background: rgba(71,85,105,.15); border-color: #475569; color: #475569; }
+.sinfo { flex: 1; }
+.sname { font-size: 12px; font-weight: 600; color: var(--t1); }
+.ssub { font-size: 9px; color: var(--t3); margin-top: 1px; }
+.noroute { font-size: 11px; color: var(--t3); text-align: center; padding: 20px 0; line-height: 1.7; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <div class="bicon">🎓</div>
+    <div>
+      <div class="bname">CAMPUS NAV</div>
+      <div class="bsub">3D College Building Explorer</div>
+    </div>
+  </div>
+  <div class="badges">
+    <span class="badge">3 FLOORS</span>
+    <span class="badge">18 ROOMS</span>
+    <span class="badge g">● LIVE</span>
+  </div>
+</header>
+
+<div class="layout">
+  <div class="sl">
+    <div class="shdr"><div class="dot"></div>Rooms &amp; Spaces</div>
+    <div class="rscroll" id="roomList"></div>
+  </div>
+
+  <div class="cw">
+    <canvas id="canvas"></canvas>
+    <div class="info-box">
+      <div>🖱 <b>Drag</b> to pan</div>
+      <div>⚙ <b>Scroll</b> to zoom</div>
+      <div>👆 <b>Click</b> room to select</div>
+    </div>
+    <div class="floor-bar">
+      <button class="flb active" id="fb0" onclick="setFloor(0)">GROUND</button>
+      <button class="flb" id="fb1" onclick="setFloor(1)">FLOOR 1</button>
+      <button class="flb" id="fb2" onclick="setFloor(2)">FLOOR 2</button>
+      <button class="flb" id="fbA" onclick="setFloor(-1)">ALL</button>
+    </div>
+    <div class="tooltip" id="tooltip">
+      <div class="tt-name" id="ttName"></div>
+      <div class="tt-sub" id="ttSub"></div>
+    </div>
+    <div class="toast" id="toast"></div>
+  </div>
+
+  <div class="sr">
+    <div class="shdr"><div class="dot"></div>Pathfinder</div>
+    <div class="nsec">
+      <div class="nlbl"><span class="ndot" style="background:var(--green)"></span>From</div>
+      <div class="acw">
+        <input class="aci" id="fromInput" placeholder="Type room name..." autocomplete="off" />
+        <button class="acx" id="fromX">✕</button>
+        <div class="acdrop" id="fromDrop"></div>
+      </div>
+      <div class="nlbl"><span class="ndot" style="background:var(--orange)"></span>To</div>
+      <div class="acw">
+        <input class="aci" id="toInput" placeholder="Type room name..." autocomplete="off" />
+        <button class="acx" id="toX">✕</button>
+        <div class="acdrop" id="toDrop"></div>
+      </div>
+      <button class="fbtn" id="findBtn">▶ FIND ROUTE</button>
+      <button class="cbtn" id="clearBtn">✕ Clear</button>
+    </div>
+    <div class="rsec">
+      <div class="rttl">Route Steps</div>
+      <div id="routeSteps"><div class="noroute">Type room names above<br>then click Find Route</div></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── DATA ────────────────────────────────────────────────────────
+var FLOORS = [
+  { name: 'Ground Floor', code: 'GF', rooms: [
+    { id:'entrance',  label:'Main Entrance',       code:'GF-01', col:'#1a4a8a', cx:0,  cy:0,  w:80, h:60 },
+    { id:'reception', label:'Reception',            code:'GF-02', col:'#1a4a8a', cx:90, cy:0,  w:60, h:60 },
+    { id:'principal', label:"Principal's Office",   code:'GF-03', col:'#1a3060', cx:0,  cy:70, w:80, h:60 },
+    { id:'admin',     label:'Admin Office',          code:'GF-04', col:'#1a3060', cx:90, cy:70, w:60, h:60 },
+    { id:'canteen',   label:'Canteen',               code:'GF-05', col:'#1e4020', cx:160,cy:0,  w:80, h:80 },
+    { id:'library',   label:'Library',               code:'GF-06', col:'#102040', cx:0,  cy:140,w:100,h:70 },
+    { id:'toilet_gf', label:'Restrooms (GF)',        code:'GF-07', col:'#2a1a4a', cx:160,cy:90, w:80, h:50 },
+    { id:'stair_gf',  label:'Stairwell/Lift',        code:'GF-S',  col:'#102030', cx:250,cy:0,  w:50, h:80 },
+    { id:'corr_gf',   label:'Corridor (GF)',         code:'COR',   col:'#0d1220', cx:0,  cy:130,w:300,h:20, isCor:true }
+  ]},
+  { name: 'First Floor', code: 'F1', rooms: [
+    { id:'cs_lab',    label:'Computer Science Lab',  code:'F1-01', col:'#0c3545', cx:0,  cy:0,  w:100,h:80 },
+    { id:'elec_lab',  label:'Electronics Lab',        code:'F1-02', col:'#153010', cx:110,cy:0,  w:100,h:80 },
+    { id:'phys_lab',  label:'Physics Lab',            code:'F1-03', col:'#352010', cx:220,cy:0,  w:80, h:80 },
+    { id:'class101',  label:'Classroom 101',          code:'F1-04', col:'#151535', cx:0,  cy:150,w:90, h:80 },
+    { id:'class102',  label:'Classroom 102',          code:'F1-05', col:'#151535', cx:100,cy:150,w:90, h:80 },
+    { id:'faculty',   label:'Faculty Room',           code:'F1-06', col:'#301530', cx:200,cy:150,w:80, h:60 },
+    { id:'toilet_f1', label:'Restrooms (F1)',         code:'F1-07', col:'#2a1a4a', cx:200,cy:220,w:80, h:40 },
+    { id:'stair_f1',  label:'Stairwell/Lift',         code:'F1-S',  col:'#102030', cx:300,cy:0,  w:50, h:80 },
+    { id:'corr_f1',   label:'Corridor (F1)',          code:'COR',   col:'#0d1220', cx:0,  cy:130,w:360,h:20, isCor:true }
+  ]},
+  { name: 'Second Floor', code: 'F2', rooms: [
+    { id:'seminar',   label:'Seminar Hall',           code:'F2-01', col:'#350818', cx:0,  cy:0,  w:130,h:100},
+    { id:'research',  label:'Research Lab',           code:'F2-02', col:'#083030', cx:140,cy:0,  w:110,h:100},
+    { id:'hod',       label:'HOD Office',             code:'F2-03', col:'#303008', cx:0,  cy:150,w:90, h:70 },
+    { id:'class201',  label:'Classroom 201',          code:'F2-04', col:'#151535', cx:100,cy:150,w:90, h:80 },
+    { id:'class202',  label:'Classroom 202',          code:'F2-05', col:'#151535', cx:200,cy:150,w:90, h:80 },
+    { id:'toilet_f2', label:'Restrooms (F2)',         code:'F2-06', col:'#2a1a4a', cx:300,cy:150,w:60, h:40 },
+    { id:'stair_f2',  label:'Stairwell/Lift',         code:'F2-S',  col:'#102030', cx:260,cy:0,  w:50, h:80 },
+    { id:'corr_f2',   label:'Corridor (F2)',          code:'COR',   col:'#0d1220', cx:0,  cy:130,w:360,h:20, isCor:true }
+  ]}
+];
+
+var GRAPH = {
+  entrance:  ['corr_gf','reception'],  reception: ['corr_gf','entrance'],
+  principal: ['corr_gf'],              admin:     ['corr_gf'],
+  canteen:   ['corr_gf'],              library:   ['corr_gf'],
+  toilet_gf: ['corr_gf'],             stair_gf:  ['corr_gf','stair_f1'],
+  corr_gf:   ['entrance','reception','principal','admin','canteen','library','toilet_gf','stair_gf'],
+  cs_lab:    ['corr_f1'],  elec_lab:  ['corr_f1'],  phys_lab:  ['corr_f1'],
+  class101:  ['corr_f1'],  class102:  ['corr_f1'],  faculty:   ['corr_f1'],
+  toilet_f1: ['corr_f1'],  stair_f1:  ['corr_f1','stair_gf','stair_f2'],
+  corr_f1:   ['cs_lab','elec_lab','phys_lab','class101','class102','faculty','toilet_f1','stair_f1'],
+  seminar:   ['corr_f2'],  research:  ['corr_f2'],  hod:       ['corr_f2'],
+  class201:  ['corr_f2'],  class202:  ['corr_f2'],  toilet_f2: ['corr_f2'],
+  stair_f2:  ['corr_f2','stair_f1'],
+  corr_f2:   ['seminar','research','hod','class201','class202','toilet_f2','stair_f2']
+};
+
+// Flatten rooms
+var allRooms = [];
+for (var fi = 0; fi < FLOORS.length; fi++) {
+  var fl = FLOORS[fi];
+  for (var ri = 0; ri < fl.rooms.length; ri++) {
+    var r = Object.assign({}, fl.rooms[ri], { fi: fi, fname: fl.name, fcode: fl.code });
+    allRooms.push(r);
+  }
+}
+var byId = {};
+for (var i = 0; i < allRooms.length; i++) byId[allRooms[i].id] = allRooms[i];
+
+function bfs(s, e) {
+  if (s === e) return [s];
+  var q = [[s]], vis = {};
+  vis[s] = true;
+  while (q.length) {
+    var path = q.shift(), node = path[path.length - 1];
+    var nb = GRAPH[node] || [];
+    for (var i = 0; i < nb.length; i++) {
+      if (vis[nb[i]]) continue;
+      var np = path.concat([nb[i]]);
+      if (nb[i] === e) return np;
+      vis[nb[i]] = true;
+      q.push(np);
+    }
+  }
+  return null;
+}
+
+// ── CANVAS RENDERER ─────────────────────────────────────────────
+var canvas = document.getElementById('canvas');
+var ctx = canvas.getContext('2d');
+var W, H;
+
+// View state
+var viewX = 0, viewY = 0, zoom = 1.0;
+var activeFl = 0;
+var pathIds = [];
+var selectedId = null;
+var hoverId = null;
+var animT = 0;
+var dragging = false, dragStart = { x: 0, y: 0 }, viewStart = { x: 0, y: 0 };
+
+function resize() {
+  var wrap = canvas.parentElement;
+  W = wrap.clientWidth;
+  H = wrap.clientHeight;
+  canvas.width = W;
+  canvas.height = H;
+  draw();
+}
+
+// Isometric helpers
+var ISO_ANGLE = 30 * Math.PI / 180;
+var WALL_H = 40;
+var FLOOR_OFFSET = 280; // px between floors when showing all
+
+function toScreen(rx, ry, floorIdx) {
+  var baseX = W / 2 + viewX;
+  var baseY = H / 2 + viewY;
+  var fi = (activeFl === -1) ? floorIdx : 0;
+  var fx = (rx - 180) * zoom;
+  var fy = (ry - 120) * zoom;
+  // Isometric projection
+  var sx = baseX + (fx - fy) * Math.cos(ISO_ANGLE);
+  var sy = baseY + (fx + fy) * Math.sin(ISO_ANGLE) * 0.5 - fi * FLOOR_OFFSET * zoom;
+  return { x: sx, y: sy };
+}
+
+function roomCorners(r, fi) {
+  var tl = toScreen(r.cx,       r.cy,       fi);
+  var tr = toScreen(r.cx + r.w, r.cy,       fi);
+  var br = toScreen(r.cx + r.w, r.cy + r.h, fi);
+  var bl = toScreen(r.cx,       r.cy + r.h, fi);
+  return { tl: tl, tr: tr, br: br, bl: bl };
+}
+
+function hexToRgb(hex, alpha) {
+  var r = parseInt(hex.slice(1,3),16);
+  var g = parseInt(hex.slice(3,5),16);
+  var b = parseInt(hex.slice(5,7),16);
+  return 'rgba(' + r + ',' + g + ',' + b + ',' + (alpha||1) + ')';
+}
+
+function lighten(hex, amt) {
+  var r = Math.min(255, parseInt(hex.slice(1,3),16) + amt);
+  var g = Math.min(255, parseInt(hex.slice(3,5),16) + amt);
+  var b = Math.min(255, parseInt(hex.slice(5,7),16) + amt);
+  return 'rgb(' + r + ',' + g + ',' + b + ')';
+}
+
+function drawRoom(r, fi, state) {
+  var c = roomCorners(r, fi);
+  var isCor = !!r.isCor;
+
+  // Determine color
+  var baseCol = r.col;
+  if (state === 'from') baseCol = '#0d4a1e';
+  else if (state === 'to') baseCol = '#4a2008';
+  else if (state === 'path') baseCol = '#0d2a50';
+  else if (state === 'hover') baseCol = lighten(r.col, 30);
+
+  // Top face
+  ctx.beginPath();
+  ctx.moveTo(c.tl.x, c.tl.y);
+  ctx.lineTo(c.tr.x, c.tr.y);
+  ctx.lineTo(c.br.x, c.br.y);
+  ctx.lineTo(c.bl.x, c.bl.y);
+  ctx.closePath();
+
+  if (isCor) {
+    ctx.fillStyle = 'rgba(20,30,50,0.5)';
+  } else {
+    ctx.fillStyle = hexToRgb(baseCol, 0.92);
+  }
+  ctx.fill();
+
+  if (!isCor) {
+    // Left wall (darker)
+    var wallDepth = WALL_H * zoom;
+    ctx.beginPath();
+    ctx.moveTo(c.bl.x, c.bl.y);
+    ctx.lineTo(c.br.x, c.br.y);
+    ctx.lineTo(c.br.x, c.br.y + wallDepth);
+    ctx.lineTo(c.bl.x, c.bl.y + wallDepth);
+    ctx.closePath();
+    ctx.fillStyle = hexToRgb(baseCol, 0.5);
+    ctx.fill();
+    ctx.strokeStyle = state === 'from' ? '#22c55e' : state === 'to' ? '#f97316' : state === 'path' ? '#3b82f6' : 'rgba(30,50,80,0.8)';
+    ctx.lineWidth = state === 'from' || state === 'to' || state === 'path' ? 1.5 : 0.5;
+    ctx.stroke();
+
+    // Right wall (medium)
+    ctx.beginPath();
+    ctx.moveTo(c.br.x, c.br.y);
+    ctx.lineTo(c.tr.x, c.tr.y);
+    ctx.lineTo(c.tr.x, c.tr.y + wallDepth);
+    ctx.lineTo(c.br.x, c.br.y + wallDepth);
+    ctx.closePath();
+    ctx.fillStyle = hexToRgb(baseCol, 0.35);
+    ctx.fill();
+    ctx.strokeStyle = state === 'from' ? '#22c55e' : state === 'to' ? '#f97316' : state === 'path' ? '#3b82f6' : 'rgba(30,50,80,0.8)';
+    ctx.lineWidth = state === 'from' || state === 'to' || state === 'path' ? 1.5 : 0.5;
+    ctx.stroke();
+  }
+
+  // Top face border
+  ctx.beginPath();
+  ctx.moveTo(c.tl.x, c.tl.y);
+  ctx.lineTo(c.tr.x, c.tr.y);
+  ctx.lineTo(c.br.x, c.br.y);
+  ctx.lineTo(c.bl.x, c.bl.y);
+  ctx.closePath();
+  if (state === 'from') { ctx.strokeStyle = '#22c55e'; ctx.lineWidth = 2; }
+  else if (state === 'to') { ctx.strokeStyle = '#f97316'; ctx.lineWidth = 2; }
+  else if (state === 'path') { ctx.strokeStyle = '#3b82f6'; ctx.lineWidth = 1.5; }
+  else if (state === 'hover') { ctx.strokeStyle = 'rgba(200,220,255,0.6)'; ctx.lineWidth = 1.5; }
+  else { ctx.strokeStyle = isCor ? 'rgba(30,50,80,0.4)' : 'rgba(40,60,100,0.7)'; ctx.lineWidth = 0.8; }
+  ctx.stroke();
+
+  // Label
+  if (!isCor) {
+    var cx = (c.tl.x + c.tr.x + c.br.x + c.bl.x) / 4;
+    var cy = (c.tl.y + c.tr.y + c.br.y + c.bl.y) / 4 - 4;
+    ctx.save();
+    ctx.font = 'bold ' + Math.max(8, 11 * zoom) + 'px Segoe UI, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = state === 'from' ? '#86efac' : state === 'to' ? '#fdba74' : state === 'path' ? '#93c5fd' : 'rgba(200,220,255,0.85)';
+    // Word wrap for short labels
+    var words = r.label.split(' ');
+    if (words.length > 2 && zoom > 0.7) {
+      var line1 = words.slice(0, Math.ceil(words.length/2)).join(' ');
+      var line2 = words.slice(Math.ceil(words.length/2)).join(' ');
+      ctx.fillText(line1, cx, cy - 6);
+      ctx.fillText(line2, cx, cy + 8);
+    } else {
+      ctx.fillText(r.label, cx, cy);
+    }
+    // Code tag
+    ctx.font = Math.max(7, 9 * zoom) + 'px monospace';
+    ctx.fillStyle = 'rgba(100,130,180,0.7)';
+    ctx.fillText(r.code, cx, cy + (words.length > 2 && zoom > 0.7 ? 22 : 14));
+    ctx.restore();
+  }
+}
+
+function drawPathLine() {
+  if (pathIds.length < 2) return;
+  var pts = [];
+  for (var i = 0; i < pathIds.length; i++) {
+    var r = byId[pathIds[i]];
+    if (!r) continue;
+    var fi = activeFl === -1 ? r.fi : (r.fi === activeFl ? 0 : -1);
+    if (fi < 0) continue;
+    var cx = r.cx + r.w / 2;
+    var cy = r.cy + r.h / 2;
+    var sc = toScreen(cx, cy, r.fi);
+    pts.push({ x: sc.x, y: sc.y - WALL_H * zoom * 0.5 });
+  }
+  if (pts.length < 2) return;
+
+  // Dashed path line
+  ctx.save();
+  ctx.setLineDash([6, 4]);
+  ctx.strokeStyle = 'rgba(59,130,246,0.7)';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(pts[0].x, pts[0].y);
+  for (var i = 1; i < pts.length; i++) ctx.lineTo(pts[i].x, pts[i].y);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Dots at each waypoint
+  for (var i = 0; i < pts.length; i++) {
+    ctx.beginPath();
+    ctx.arc(pts[i].x, pts[i].y, i === 0 ? 6 : (i === pts.length-1 ? 6 : 4), 0, Math.PI*2);
+    ctx.fillStyle = i === 0 ? '#22c55e' : (i === pts.length-1 ? '#f97316' : '#3b82f6');
+    ctx.fill();
+  }
+
+  // Animated traveller dot
+  var total = pts.length - 1;
+  var prog = animT % 1;
+  var seg = Math.floor(prog * total);
+  var segProg = (prog * total) - seg;
+  if (seg < pts.length - 1) {
+    var ax = pts[seg].x + (pts[seg+1].x - pts[seg].x) * segProg;
+    var ay = pts[seg].y + (pts[seg+1].y - pts[seg].y) * segProg;
+    var pulse = 0.85 + Math.sin(Date.now() * 0.006) * 0.15;
+    ctx.beginPath();
+    ctx.arc(ax, ay, 8 * pulse, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(96,165,250,0.3)';
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(ax, ay, 5, 0, Math.PI * 2);
+    ctx.fillStyle = '#60a5fa';
+    ctx.fill();
+  }
+  ctx.restore();
+}
+
+function getFloorLabel(fi) {
+  return FLOORS[fi] ? FLOORS[fi].code + ' — ' + FLOORS[fi].name : '';
+}
+
+function draw() {
+  ctx.clearRect(0, 0, W, H);
+
+  // Background gradient
+  var bg = ctx.createRadialGradient(W/2, H/2, 0, W/2, H/2, Math.max(W,H)*0.7);
+  bg.addColorStop(0, '#0d1528');
+  bg.addColorStop(1, '#070a12');
+  ctx.fillStyle = bg;
+  ctx.fillRect(0, 0, W, H);
+
+  // Grid lines
+  ctx.save();
+  ctx.strokeStyle = 'rgba(30,40,70,0.4)';
+  ctx.lineWidth = 0.5;
+  for (var gx = 0; gx < W; gx += 40) { ctx.beginPath(); ctx.moveTo(gx, 0); ctx.lineTo(gx, H); ctx.stroke(); }
+  for (var gy = 0; gy < H; gy += 40) { ctx.beginPath(); ctx.moveTo(0, gy); ctx.lineTo(W, gy); ctx.stroke(); }
+  ctx.restore();
+
+  var floorsToDraw = activeFl === -1 ? [0,1,2] : [activeFl];
+
+  for (var fIdx = floorsToDraw.length - 1; fIdx >= 0; fIdx--) {
+    var fi = floorsToDraw[fIdx];
+    var fl = FLOORS[fi];
+
+    // Floor label
+    var labelPos = toScreen(180, -30, fi);
+    ctx.save();
+    ctx.font = 'bold ' + Math.max(11, 14 * zoom) + 'px Segoe UI, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillStyle = 'rgba(59,130,246,0.55)';
+    ctx.fillText(fl.code + '  ·  ' + fl.name.toUpperCase(), labelPos.x, labelPos.y);
+    ctx.restore();
+
+    // Floor platform
+    var platform = [
+      toScreen(-20, -20, fi),
+      toScreen(380, -20, fi),
+      toScreen(380, 280, fi),
+      toScreen(-20, 280, fi)
+    ];
+    ctx.beginPath();
+    ctx.moveTo(platform[0].x, platform[0].y);
+    for (var k = 1; k < platform.length; k++) ctx.lineTo(platform[k].x, platform[k].y);
+    ctx.closePath();
+    ctx.fillStyle = 'rgba(12,20,35,0.6)';
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(28,38,64,0.6)';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    // Draw corridors first (below rooms)
+    for (var ri = 0; ri < fl.rooms.length; ri++) {
+      var r = fl.rooms[ri];
+      if (r.isCor) drawRoom(r, fi, 'normal');
+    }
+
+    // Draw rooms
+    for (var ri = 0; ri < fl.rooms.length; ri++) {
+      var r = fl.rooms[ri];
+      if (r.isCor) continue;
+      var state = 'normal';
+      if (r.id === hoverId && activeFl !== -1) state = 'hover';
+      if (pathIds.indexOf(r.id) >= 0) state = 'path';
+      if (r.id === (acFrom.val || null)) state = 'from';
+      if (r.id === (acTo.val || null)) state = 'to';
+      drawRoom(r, fi, state);
+    }
+  }
+
+  // Path line on top
+  drawPathLine();
+}
+
+// ── ANIMATION LOOP ───────────────────────────────────────────────
+function animLoop() {
+  animT += 0.008;
+  draw();
+  requestAnimationFrame(animLoop);
+}
+
+// ── MOUSE / TOUCH EVENTS ─────────────────────────────────────────
+function hitTest(mx, my) {
+  // Only test visible floor
+  var floorsToDraw = activeFl === -1 ? [0,1,2] : [activeFl];
+  for (var fIdx = 0; fIdx < floorsToDraw.length; fIdx++) {
+    var fi = floorsToDraw[fIdx];
+    var fl = FLOORS[fi];
+    for (var ri = 0; ri < fl.rooms.length; ri++) {
+      var r = fl.rooms[ri];
+      if (r.isCor) continue;
+      var c = roomCorners(r, fi);
+      // Point-in-parallelogram test
+      if (pointInQuad(mx, my, c.tl, c.tr, c.br, c.bl)) return r.id;
+    }
+  }
+  return null;
+}
+
+function pointInQuad(px, py, a, b, c, d) {
+  function sign(p1, p2, p3) { return (p1.x-p3.x)*(p2.y-p3.y) - (p2.x-p3.x)*(p1.y-p3.y); }
+  var p = { x: px, y: py };
+  var d1 = sign(p,a,b), d2 = sign(p,b,c), d3 = sign(p,c,d), d4 = sign(p,d,a);
+  var neg = (d1<0)||(d2<0)||(d3<0)||(d4<0);
+  var pos = (d1>0)||(d2>0)||(d3>0)||(d4>0);
+  return !(neg && pos);
+}
+
+canvas.addEventListener('mousedown', function(e) {
+  dragging = true;
+  dragStart = { x: e.clientX, y: e.clientY };
+  viewStart = { x: viewX, y: viewY };
+});
+window.addEventListener('mouseup', function(e) {
+  if (dragging) {
+    var dx = e.clientX - dragStart.x, dy = e.clientY - dragStart.y;
+    if (Math.abs(dx) < 4 && Math.abs(dy) < 4) {
+      var rect = canvas.getBoundingClientRect();
+      var hit = hitTest(e.clientX - rect.left, e.clientY - rect.top);
+      if (hit) clickRoom(hit);
+    }
+    dragging = false;
+  }
+});
+window.addEventListener('mousemove', function(e) {
+  if (dragging) {
+    viewX = viewStart.x + (e.clientX - dragStart.x);
+    viewY = viewStart.y + (e.clientY - dragStart.y);
+    return;
+  }
+  var rect = canvas.getBoundingClientRect();
+  var hit = hitTest(e.clientX - rect.left, e.clientY - rect.top);
+  if (hit !== hoverId) { hoverId = hit; }
+  // Tooltip
+  var tip = document.getElementById('tooltip');
+  if (hit) {
+    var r = byId[hit];
+    document.getElementById('ttName').textContent = r.label;
+    document.getElementById('ttSub').textContent = r.fname + ' · ' + r.code;
+    tip.style.left = (e.clientX - canvas.getBoundingClientRect().left + 12) + 'px';
+    tip.style.top  = (e.clientY - canvas.getBoundingClientRect().top  - 10) + 'px';
+    tip.classList.add('show');
+    canvas.style.cursor = 'pointer';
+  } else {
+    tip.classList.remove('show');
+    canvas.style.cursor = 'default';
+  }
+});
+canvas.addEventListener('wheel', function(e) {
+  e.preventDefault();
+  zoom = Math.max(0.4, Math.min(2.5, zoom * (e.deltaY > 0 ? 0.9 : 1.1)));
+}, { passive: false });
+
+// ── FLOOR CONTROL ────────────────────────────────────────────────
+function setFloor(idx) {
+  activeFl = idx;
+  if (idx === -1) { viewY = -60; }
+  else { viewY = 0; viewX = 0; }
+  var ids = ['fb0','fb1','fb2','fbA'];
+  for (var i = 0; i < ids.length; i++) {
+    document.getElementById(ids[i]).classList.toggle('active', i === (idx === -1 ? 3 : idx));
+  }
+}
+
+// ── AUTOCOMPLETE ─────────────────────────────────────────────────
+var acFrom = { inputId:'fromInput', dropId:'fromDrop', xId:'fromX', val: null };
+var acTo   = { inputId:'toInput',   dropId:'toDrop',   xId:'toX',   val: null };
+
+function getSearchRooms() {
+  return allRooms.filter(function(r) { return !r.isCor; });
+}
+
+function esc(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function renderDrop(ac, query) {
+  var drop = document.getElementById(ac.dropId);
+  var rooms = getSearchRooms();
+  var q = query.trim().toLowerCase();
+  var filtered = q ? rooms.filter(function(r) {
+    return r.label.toLowerCase().indexOf(q) >= 0 || r.code.toLowerCase().indexOf(q) >= 0 || r.fname.toLowerCase().indexOf(q) >= 0;
+  }) : rooms;
+
+  if (!filtered.length) {
+    drop.innerHTML = '<div class="acnone">No rooms found</div>';
+  } else {
+    var html = '';
+    for (var i = 0; i < filtered.length; i++) {
+      var r = filtered[i];
+      var lbl = esc(r.label);
+      if (q) {
+        var idx = r.label.toLowerCase().indexOf(q);
+        if (idx >= 0) lbl = esc(r.label.slice(0,idx)) + '<span class="acopt-hl">' + esc(r.label.slice(idx,idx+q.length)) + '</span>' + esc(r.label.slice(idx+q.length));
+      }
+      html += '<div class="acopt" data-id="' + r.id + '">' + lbl + '<span class="acopt-fl">' + r.fcode + '</span></div>';
+    }
+    drop.innerHTML = html;
+    var opts = drop.querySelectorAll('.acopt');
+    for (var j = 0; j < opts.length; j++) {
+      (function(el) {
+        el.addEventListener('mousedown', function(e) {
+          e.preventDefault();
+          selectAC(ac, el.getAttribute('data-id'));
+        });
+      })(opts[j]);
+    }
+  }
+  drop.classList.add('open');
+}
+
+function selectAC(ac, roomId) {
+  var r = byId[roomId];
+  if (!r) return;
+  ac.val = roomId;
+  var inp = document.getElementById(ac.inputId);
+  inp.value = r.label;
+  inp.classList.add('hasval');
+  document.getElementById(ac.xId).style.display = 'block';
+  document.getElementById(ac.dropId).classList.remove('open');
+  // Switch to room's floor
+  if (activeFl !== -1) setFloor(r.fi);
+  // Highlight in list
+  var el = document.getElementById('ri_' + roomId);
+  if (el) el.scrollIntoView({ block: 'nearest' });
+}
+
+function clearAC(ac) {
+  ac.val = null;
+  var inp = document.getElementById(ac.inputId);
+  inp.value = '';
+  inp.classList.remove('hasval');
+  document.getElementById(ac.xId).style.display = 'none';
+  document.getElementById(ac.dropId).classList.remove('open');
+}
+
+function initAC(ac) {
+  var inp = document.getElementById(ac.inputId);
+  document.getElementById(ac.xId).addEventListener('click', function() { clearAC(ac); });
+  inp.addEventListener('input', function() { renderDrop(ac, inp.value); });
+  inp.addEventListener('focus', function() { renderDrop(ac, inp.value); });
+  inp.addEventListener('blur',  function() { setTimeout(function() { document.getElementById(ac.dropId).classList.remove('open'); }, 180); });
+  inp.addEventListener('keydown', function(e) {
+    var drop = document.getElementById(ac.dropId);
+    var opts = drop.querySelectorAll('.acopt');
+    var focEl = drop.querySelector('.acopt.foc');
+    var focIdx = -1;
+    for (var i = 0; i < opts.length; i++) if (opts[i] === focEl) { focIdx = i; break; }
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      focIdx = Math.min(focIdx + 1, opts.length - 1);
+      for (var i = 0; i < opts.length; i++) opts[i].classList.toggle('foc', i === focIdx);
+      if (opts[focIdx]) opts[focIdx].scrollIntoView({ block: 'nearest' });
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      focIdx = Math.max(focIdx - 1, 0);
+      for (var i = 0; i < opts.length; i++) opts[i].classList.toggle('foc', i === focIdx);
+    } else if (e.key === 'Enter' && focIdx >= 0 && opts[focIdx]) {
+      selectAC(ac, opts[focIdx].getAttribute('data-id'));
+    } else if (e.key === 'Escape') {
+      document.getElementById(ac.dropId).classList.remove('open');
+    }
+  });
+}
+
+// ── CLICK ROOM (from canvas) ─────────────────────────────────────
+function clickRoom(id) {
+  var r = byId[id];
+  if (!r) return;
+  selectAC(acFrom, id);
+  // Highlight in list
+  var ris = document.querySelectorAll('.ri');
+  for (var i = 0; i < ris.length; i++) ris[i].classList.remove('sel');
+  var el = document.getElementById('ri_' + id);
+  if (el) { el.classList.add('sel'); el.scrollIntoView({ block: 'nearest' }); }
+  showToast(r.label + ' selected');
+}
+
+// ── FIND PATH ────────────────────────────────────────────────────
+document.getElementById('findBtn').addEventListener('click', function() {
+  var f = acFrom.val, t = acTo.val;
+  if (!f) { showToast('Please select a FROM room'); return; }
+  if (!t) { showToast('Please select a TO room'); return; }
+  if (f === t) { showToast('Select two different rooms'); return; }
+  var path = bfs(f, t);
+  var el = document.getElementById('routeSteps');
+  if (!path) {
+    el.innerHTML = '<div class="noroute">No route found.</div>';
+    showToast('No route found'); return;
+  }
+  pathIds = path;
+  animT = 0;
+
+  // If cross-floor, show all
+  var floorsUsed = {};
+  for (var i = 0; i < path.length; i++) { var r = byId[path[i]]; if (r) floorsUsed[r.fi] = true; }
+  if (Object.keys(floorsUsed).length > 1) setFloor(-1);
+
+  // Highlight in sidebar
+  var ris = document.querySelectorAll('.ri');
+  for (var i = 0; i < ris.length; i++) ris[i].classList.remove('pf','pt');
+  var fromEl = document.getElementById('ri_' + f);
+  var toEl   = document.getElementById('ri_' + t);
+  if (fromEl) fromEl.classList.add('pf');
+  if (toEl)   toEl.classList.add('pt');
+
+  // Build steps
+  var html = '';
+  for (var i = 0; i < path.length; i++) {
+    var r = byId[path[i]];
+    if (!r) continue;
+    var cls = i === 0 ? 's' : (i === path.length-1 ? 'e' : (r.isCor ? 'c' : 'm'));
+    var dot = i === 0 ? '●' : (i === path.length-1 ? '●' : (r.isCor ? '↑' : '◆'));
+    html += '<div class="rstep"><div class="sdot ' + cls + '">' + dot + '</div>' +
+            '<div class="sinfo"><div class="sname">' + r.label + '</div>' +
+            '<div class="ssub">' + r.fname + ' · ' + r.code + '</div></div></div>';
+  }
+  el.innerHTML = html;
+  showToast('Route found: ' + path.length + ' steps');
+});
+
+document.getElementById('clearBtn').addEventListener('click', function() {
+  pathIds = [];
+  clearAC(acFrom); clearAC(acTo);
+  var ris = document.querySelectorAll('.ri');
+  for (var i = 0; i < ris.length; i++) ris[i].classList.remove('pf','pt','sel');
+  document.getElementById('routeSteps').innerHTML = '<div class="noroute">Type room names above<br>then click Find Route</div>';
+});
+
+// ── TOAST ─────────────────────────────────────────────────────────
+function showToast(msg) {
+  var t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(function() { t.classList.remove('show'); }, 2500);
+}
+
+// ── BUILD SIDEBAR ─────────────────────────────────────────────────
+function buildUI() {
+  var list = document.getElementById('roomList');
+  list.innerHTML = '';
+  for (var fi = 0; fi < FLOORS.length; fi++) {
+    var fl = FLOORS[fi];
+    var grp = document.createElement('div');
+    grp.className = 'fg';
+    var lbl = document.createElement('div');
+    lbl.className = 'fglbl';
+    lbl.textContent = fl.code + '  ·  ' + fl.name;
+    grp.appendChild(lbl);
+    for (var ri = 0; ri < fl.rooms.length; ri++) {
+      var r = fl.rooms[ri];
+      if (r.isCor) continue;
+      var el = document.createElement('div');
+      el.className = 'ri';
+      el.id = 'ri_' + r.id;
+      var dot = document.createElement('span');
+      dot.className = 'ri-dot';
+      dot.style.background = r.col;
+      dot.style.border = '1px solid rgba(255,255,255,0.1)';
+      var name = document.createElement('span');
+      name.className = 'ri-name';
+      name.textContent = r.label;
+      var code = document.createElement('span');
+      code.className = 'ri-code';
+      code.textContent = r.code;
+      el.appendChild(dot); el.appendChild(name); el.appendChild(code);
+      (function(id) { el.onclick = function() { clickRoom(id); }; })(r.id);
+      grp.appendChild(el);
+    }
+    list.appendChild(grp);
+  }
+  initAC(acFrom);
+  initAC(acTo);
+}
+
+// ── INIT ─────────────────────────────────────────────────────────
+window.addEventListener('resize', resize);
+buildUI();
+resize();
+animLoop();
+</script>
+</body>
+</html>

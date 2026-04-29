@@ -420,3 +420,62 @@ body {
     padding: 16px;
   }
 }
+
+/* Quick Access Cards */
+.quick-access-cards {
+  display: flex;
+  gap: 8px;
+  margin-right: 16px;
+}
+
+.quick-access-card {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: var(--card-bg, var(--bg-card));
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-width: 90px;
+}
+
+.quick-access-card:hover {
+  background: var(--card-bg);
+  border-color: var(--card-color);
+  transform: translateY(-2px);
+}
+
+.quick-access-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--card-bg);
+  color: var(--card-color);
+}
+
+.quick-access-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.quick-access-name {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.quick-access-count {
+  font-size: 10px;
+  color: var(--text-secondary);
+}
+
+@media (max-width: 1024px) {
+  .quick-access-cards {
+    display: none;
+  }
+}

@@ -5,6 +5,10 @@ import Lab from './component/lab'
 import Library from './component/library'
 import Seminar from './component/seminar'
 import SpecialLab from './component/speciallab'
+import ExamSeating from './component/examseating'
+import LostAndFound from './component/lostandfound'
+import Campus3D from './component/campus3d'
+import QuickAccessCards from './component/QuickAccessCards'
 
 // Icons as simple SVG components
 const DashboardIcon = () => (
@@ -55,6 +59,32 @@ const SpecialLabIcon = () => (
     <path d="M12 2L2 7l10 5 10-5-10-5z"/>
     <path d="M2 17l10 5 10-5"/>
     <path d="M2 12l10 5 10-5"/>
+  </svg>
+)
+
+const ExamSeatingIcon = () => (
+  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/>
+    <rect x="9" y="3" width="6" height="4" rx="1"/>
+    <path d="M9 12h6M9 16h6"/>
+  </svg>
+)
+
+const LostFoundIcon = () => (
+  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <circle cx="12" cy="12" r="10"/>
+    <path d="M12 8v4"/>
+    <path d="M12 16h.01"/>
+  </svg>
+)
+
+const Campus3DIcon = () => (
+  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <path d="M2 20h20"/>
+    <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+    <path d="M2 17l10 5 10-5"/>
+    <path d="M2 12l10 5 10-5"/>
+    <path d="M12 7v10"/>
   </svg>
 )
 
@@ -126,13 +156,16 @@ const resourcesData = [
 function App() {
   const [activeNav, setActiveNav] = useState('dashboard')
 
-  const navItems = [
+const navItems = [
     { id: 'dashboard', icon: <DashboardIcon />, label: 'Dashboard' },
     { id: 'classrooms', icon: <ClassroomIcon />, label: 'Classrooms' },
     { id: 'labs', icon: <LabIcon />, label: 'Labs' },
     { id: 'library', icon: <LibraryIcon />, label: 'Library' },
     { id: 'seminars', icon: <SeminarIcon />, label: 'Seminars' },
     { id: 'speciallabs', icon: <SpecialLabIcon />, label: 'Special Labs' },
+{ id: 'examseating', icon: <ExamSeatingIcon />, label: 'Exam Seating' },
+    { id: 'lostandfound', icon: <LostFoundIcon />, label: 'Lost & Found' },
+    { id: 'campus3d', icon: <Campus3DIcon />, label: '3D Campus' },
   ]
 
 // Calculate stats
@@ -155,8 +188,14 @@ function App() {
         return { title: 'Library', subtitle: 'Study spaces and resources' }
       case 'seminars':
         return { title: 'Seminars', subtitle: 'Seminar halls and conference rooms' }
-      case 'speciallabs':
+case 'speciallabs':
         return { title: 'Special Labs', subtitle: 'Specialized research laboratories' }
+      case 'examseating':
+        return { title: 'Exam Seating', subtitle: 'Find exam venues and available seating' }
+case 'lostandfound':
+        return { title: 'Lost & Found', subtitle: 'Find or report lost items on campus' }
+      case 'campus3d':
+        return { title: '3D Campus', subtitle: 'Explore campus in 3D view' }
       default:
         return { title: 'Dashboard', subtitle: 'Welcome back! Monitor campus resources in real-time' }
     }
@@ -195,6 +234,7 @@ function App() {
             <p>{pageTitle.subtitle}</p>
           </div>
           <div className="header-actions">
+            <QuickAccessCards onNavigate={setActiveNav} />
             <div className="search-box">
               <span className="search-icon"><SearchIcon /></span>
               <input type="text" placeholder="Search resources..." />
@@ -284,7 +324,13 @@ function App() {
 
         {activeNav === 'seminars' && <Seminar />}
 
-        {activeNav === 'speciallabs' && <SpecialLab />}
+{activeNav === 'speciallabs' && <SpecialLab />}
+
+        {activeNav === 'examseating' && <ExamSeating />}
+
+{activeNav === 'lostandfound' && <LostAndFound />}
+
+        {activeNav === 'campus3d' && <Campus3D />}
       </main>
     </div>
   )
