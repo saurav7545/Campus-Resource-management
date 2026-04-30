@@ -1,174 +1,125 @@
-ठीक है 👍 मैं तुम्हें एक **ready-to-use README.md** भी दे देता हूँ + साथ में **image add करने का तरीका** भी clear कर देता हूँ।
+﻿# Campus Resource Management
 
----
+Campus Resource Management is a full-stack web app for browsing and tracking campus resources such as classrooms, labs, libraries, seminar halls, and special research labs.
 
-# 📄 ✅ Ready README.md (Copy–Paste)
+## Screenshots
 
-```markdown
-# 🚀 Campus Resource Management System
+![Campus Dashboard](CRN/public/image.png)
+![Campus Resource Views](CRN/public/image1.png)
 
-A web-based application to manage campus resources efficiently.  
-This project helps in handling different campus facilities, requests, and management tasks.
+## What is in this repository
 
----
+- `CRN`: React + Vite frontend (single-page dashboard with module views)
+- `backend`: Express + MongoDB API for resource data
+- `TODO.md`: current implementation notes
 
-## 📌 Features
+## Features
 
-- 🔐 User Authentication
-- 🏫 Resource Management (Rooms, Labs, etc.)
-- 📊 Dashboard for monitoring
-- ⚡ Fast UI using React + Vite
-- 🖥️ Backend support (Django / API)
+- Dashboard with resource summary cards and quick navigation
+- Classroom search by course, year, and section
+- Lab search by type and location
+- Library listing with timing and floor details
+- Seminar hall filtering by capacity range
+- Special lab filtering by research area
+- Exam seating module (sample data driven)
+- Lost and Found module with in-memory report form
+- 3D campus explorer loaded from an embedded HTML model
 
----
+## Tech stack
 
-## 🛠️ Tech Stack
+- Frontend: React 19, Vite
+- Backend: Node.js, Express 5
+- Database: MongoDB with Mongoose
+- Styling: CSS + inline component styles
 
-- Frontend: React + Vite
-- Backend: Django
-- Database: SQLite / MySQL
-- Styling: CSS
+## Project structure
 
----
-
-## 📂 Project Structure
-
-```
-
+```text
 Campus-Resource-management/
-│
-├── CRN/ (Frontend - React)
-├── backend/ (Django Backend)
-├── README.md
-
-````
-
----
-
-## ⚙️ Installation & Setup
-
-### 🔹 1. Clone the Repository
-
-```bash
-git clone https://github.com/your-username/Campus-Resource-management.git
-cd Campus-Resource-management
-````
-
----
-
-### 🔹 2. Frontend Setup
-
-```bash
-cd CRN
-npm install --legacy-peer-deps
-npm run dev
+|-- CRN/
+|   |-- public/
+|   |   |-- image.png
+|   |   `-- image1.png
+|   |-- src/
+|   |   |-- component/
+|   |   |-- assets/3dmodel.html
+|   |   |-- App.jsx
+|   |   `-- App.css
+|   `-- package.json
+|-- backend/
+|   |-- models/
+|   |-- routes/resourceRoutes.js
+|   |-- server.js
+|   |-- seed.js
+|   `-- package.json
+`-- README.md
 ```
 
----
+## Prerequisites
 
-### 🔹 3. Backend Setup
+- Node.js 18+ (recommended)
+- npm
+- MongoDB running locally or a reachable MongoDB URI
+
+## Setup and run
+
+### 1) Backend setup
 
 ```bash
 cd backend
-pip install -r requirements.txt
-python manage.py runserver
+npm install
 ```
 
----
+Create `backend/.env`:
 
-## 🖼️ Screenshots
-
-![App Screenshot](./images/home.png)
-
----
-
-## 🤝 Contributing
-
-Feel free to fork this repo and submit a pull request.
-
----
-
-## 📧 Contact
-
-Saurav Kumar
-📍 Dehradun, India
-📧 [your-email@example.com](mailto:your-email@example.com)
-
----
-
-## ⭐ Support
-
-If you like this project, give it a ⭐ on GitHub!
-
-````
-
----
-
-# 🖼️ Image kaise add kare (IMPORTANT 🔥)
-
-## 🔹 Step 1: Folder banao
-Project root me ek folder banao:
-
-``` id="f3p2h1"
-images/
-````
-
----
-
-## 🔹 Step 2: Image daalo
-
-Example:
-
-```id="z2k9qp"
-images/home.png
+```env
+MONGO_URL=mongodb://127.0.0.1:27017/campus_resource_db
 ```
 
----
+Run backend server:
 
-## 🔹 Step 3: README me use karo
-
-```markdown
-![Home Page](./images/home.png)
+```bash
+npm run dev
 ```
 
----
+Backend runs on `http://localhost:5000`.
 
-## 🧠 Extra Tips
+### 2) Seed sample database data
 
-### ✅ Agar image GitHub pe upload karna hai:
+In a new terminal (while backend is running):
 
-* Drag & drop image directly README edit mode me
-* GitHub auto link generate kar dega
-
----
-
-### ✅ Multiple images add karna
-
-```markdown
-## Screenshots
-
-![Home](./images/home.png)
-![Dashboard](./images/dashboard.png)
+```bash
+cd backend
+node seed.js
 ```
 
----
+This calls `POST /api/resources/seed` and populates sample resources.
 
-## 🚀 Pro Level (Best Practice)
+### 3) Frontend setup
 
-* Screenshot clear lo (Chrome full page)
-* Naming clean rakho:
+In another terminal:
 
-  * `home.png`
-  * `dashboard.png`
-  * `login.png`
+```bash
+cd CRN
+npm install
+npm run dev
+```
 
----
+Frontend runs on Vite default port (`http://localhost:5173` unless changed).
 
-## 👍 Next Step
+## API endpoints
 
-Agar chaho to main:
+Base URL: `http://localhost:5000/api/resources`
 
-* tumhare project ke according **custom professional README design** bana dunga
-* ya **GitHub portfolio level README (with badges + animations)** bhi bana sakta hoon
+- `GET /classrooms` with optional query params: `crn`, `course`, `year`, `section`
+- `GET /labs` with optional query param: `type`
+- `GET /libraries`
+- `GET /seminars` with optional query params: `minCapacity`, `maxCapacity`
+- `GET /speciallabs` with optional query param: `researchArea`
+- `POST /seed` to reset and seed demo data
 
-बस bol do 😎
+## Notes
+
+- The frontend expects backend API at `http://localhost:5000/api/resources`.
+- Most resource modules fall back to local sample data if API fetch fails.
+- `Exam Seating` and `Lost & Found` currently use client-side sample/in-memory data.
